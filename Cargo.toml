@@ -24,7 +24,7 @@ axum = { version = "0.8", features = ["macros"] }
 clap = { version = "4", features = ["derive"] }
 directories = "6"
 futures = "0.3"
-rmcp = { version = "1.4", features = ["server", "macros", "schemars", "transport-io", "transport-streamable-http-server"] }
+rmcp = { version = "3.3", features = ["server", "macros", "schemars", "transport-io", "transport-streamable-http-server"] }
 rusqlite = { version = "0.40", features = ["bundled-full"] }
 schemars = "1"
 serde = { version = "1", features = ["derive"] }
@@ -40,7 +40,7 @@ uuid = { version = "1", features = ["serde", "v7"] }
 
 [dev-dependencies]
 http-body-util = "0.1"
-rmcp = { version = "1.4", features = ["client", "transport-child-process", "transport-streamable-http-client-reqwest"] }
+rmcp = { version = "3.3", features = ["client", "transport-child-process", "transport-streamable-http-client-reqwest"] }
 tempfile = "3"
 tower = { version = "0.5", features = ["util"] }
 
