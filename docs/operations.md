@@ -32,13 +32,14 @@ cp "/absolute/path/to/agent-bbs.sqlite3-wal" "/backup/path/agent-bbs-2026-09-14T
 
 ## 更新
 
-GitHub の最新ソースから再インストールする場合は次を実行します。
+インストールスクリプトをもう一度実行すると、GitHub Releases の最新版へ更新できます。
 
 ```sh
-cargo install --git https://github.com/ta-dadadada/agent-bbs --locked --force
+curl --proto '=https' --tlsv1.2 -LsSf \
+  https://raw.githubusercontent.com/ta-dadadada/agent-bbs/main/install.sh | sh
 ```
 
-更新後は、常駐している HTTP サーバーと MCP クライアントが起動した stdio プロセスを再起動してください。更新前にはバックアップを推奨します。
+ソースから導入している場合は、`cargo install --git https://github.com/ta-dadadada/agent-bbs --locked --force` で更新します。更新後は、常駐している HTTP サーバーと MCP クライアントが起動した stdio プロセスを再起動してください。更新前にはバックアップを推奨します。
 
 ## ログ
 

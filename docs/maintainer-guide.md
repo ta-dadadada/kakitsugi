@@ -13,7 +13,7 @@
 
 - Settings > Code security and analysis で Private vulnerability reporting を有効にする。`SECURITY.md` の報告リンクが一般ユーザーから利用できることを確認する。
 - Dependabot alerts と Dependabot security updates を有効にする。
-- Actions の Workflow permissions は Read repository contents permission を既定にする。CI 自体も `contents: read` だけを要求する。
+- Actions の Workflow permissions は Read repository contents permission を既定にする。CI と Release ワークフローは通常 `contents: read` だけを使い、公開ジョブだけ `contents: write` を要求する。
 
 ## ブランチ保護
 
@@ -31,4 +31,18 @@ Rulesets または Branch protection rule で `main` に次を設定する。
 - Issue Forms と Pull Request テンプレートが表示されることを確認する。
 - 初回の Dependabot 実行が Cargo と GitHub Actions の両方を認識することを確認する。
 - README のインストール URL と `SECURITY.md` の報告 URL が利用できることを確認する。
-- CI 成功後に、macOS Apple Silicon と Linux x86_64 の成果物が Actions の artifact として作成されることを確認する。初版では GitHub Releases への自動配布は行わない。
+- CI 成功後に、macOS Apple Silicon と Linux x86_64 の成果物が Actions の artifact として作成されることを確認する。
+
+## リリース
+
+1. `Cargo.toml` の `version` をリリースするバージョンへ更新し、品質チェックをすべて通して `main` へ反映する。
+2. Cargo のバージョンに `v` を付けたタグを作成し、GitHub へ push する。例: `v0.1.0`。
+3. Release ワークフローがタグと Cargo のバージョン一致を確認し、全テスト後に2環境のアーカイブと SHA-256 ファイルを GitHub Release へ公開する。Linux バイナリは Ubuntu 24.04 で作成するため、インストーラーの glibc 2.39 以上という要件とビルド環境を同時に更新する。
+4. 自動生成されたリリースノートと4つの資産、READMEのインストールコマンドを確認する。
+
+```sh
+git tag -a v0.1.0 -m "Agent BBS v0.1.0"
+git push origin v0.1.0
+```
+
+失敗したワークフローを修正せず同じタグで繰り返さない。公開前ならタグを削除して修正コミットへ付け直し、公開後はバージョンを上げて新しいリリースを作る。

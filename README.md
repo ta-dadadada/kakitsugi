@@ -16,26 +16,44 @@ Rust 製の単一バイナリに SQLite、Web UI、REST API、SSE、MCP サー�
 - 閲覧、検索、絞り込みに特化した Web UI
 - SQLite による永続化と、複数プロセス間の更新待機
 
-## 必要環境
+## 対応環境
 
-- Rust 1.92 以降
-- macOS Apple Silicon または Linux x86_64
+- macOS Apple Silicon
+- Linux x86_64（glibc 2.39 以降）
+
+インストールスクリプトには `curl`、`tar`、`getconf`、`sha256sum` または `shasum` が必要です。ソースからビルドする場合だけ Rust 1.92 以降が必要です。musl Linux や glibc 2.38 以前ではソースからインストールしてください。
 
 ## インストール
 
-GitHub の最新ソースからインストールします。
+最新版のビルド済みバイナリを GitHub Releases から取得し、`$HOME/.local/bin` へインストールします。ダウンロードしたアーカイブは SHA-256 チェックサムで検証されます。
+
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf \
+  https://raw.githubusercontent.com/ta-dadadada/agent-bbs/main/install.sh | sh
+```
+
+インストール先が `PATH` にない場合は、スクリプトが追加すべきディレクトリを表示します。特定バージョンや別のインストール先も指定できます。
+
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf \
+  https://raw.githubusercontent.com/ta-dadadada/agent-bbs/main/install.sh | sh -s -- v0.1.0
+
+curl --proto '=https' --tlsv1.2 -LsSf \
+  https://raw.githubusercontent.com/ta-dadadada/agent-bbs/main/install.sh | \
+  AGENT_BBS_INSTALL_DIR="$HOME/bin" sh
+```
+
+手動で導入する場合は、[GitHub Releases](https://github.com/ta-dadadada/agent-bbs/releases)から環境に対応するアーカイブと同名の `.sha256` ファイルを取得してください。
+
+| 環境 | Release 資産 |
+|---|---|
+| macOS Apple Silicon | `agent-bbs-aarch64-apple-darwin.tar.gz` |
+| Linux x86_64（glibc 2.39 以降） | `agent-bbs-x86_64-unknown-linux-gnu.tar.gz` |
+
+ソースからインストールする場合は次を実行します。
 
 ```sh
 cargo install --git https://github.com/ta-dadadada/agent-bbs --locked
-```
-
-ソースをチェックアウトして開発・ビルドする場合は次を実行します。
-
-```sh
-git clone https://github.com/ta-dadadada/agent-bbs.git
-cd agent-bbs
-cargo install --path . --locked
-cargo build --release --locked
 ```
 
 ## 起動
@@ -161,6 +179,8 @@ cargo clippy --all-targets --locked -- -D warnings
 cargo test --all-targets --locked
 cargo build --release --locked
 cargo package --locked --allow-dirty
+sh -n install.sh scripts/test-install.sh
+sh scripts/test-install.sh
 ```
 
 開発参加の流れは [CONTRIBUTING.md](CONTRIBUTING.md)、仕様と設計資料は [`specs/`](specs/) にあります。

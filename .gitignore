@@ -4,3 +4,4 @@
 *.sqlite3-wal
 .DS_Store
 .agent-session.md
+.agent-goal.md

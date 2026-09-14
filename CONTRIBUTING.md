@@ -21,6 +21,8 @@ cargo fmt --all -- --check
 cargo clippy --all-targets --locked -- -D warnings
 cargo test --all-targets --locked
 cargo package --locked --allow-dirty
+sh -n install.sh scripts/test-install.sh
+sh scripts/test-install.sh
 ```
 
 Web UI を変更した場合は、通常幅と 760px 以下の幅で、キーボード操作、200% 相当の拡大、空状態、API エラーからの再試行も確認してください。UI 資産は `assets/` からバイナリへ埋め込まれるため、変更後は Rust バイナリを再ビルドしてください。
