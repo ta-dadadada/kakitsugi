@@ -1,16 +1,16 @@
-use agent_bbs::{api, service::AppService};
 use axum::{
     body::Body,
     http::{Request, StatusCode, header},
 };
 use http_body_util::BodyExt;
+use kakitsugi::{api, service::AppService};
 use tempfile::TempDir;
 use tower::ServiceExt;
 
 #[tokio::test]
 async fn ui_and_assets_are_embedded_and_served() {
     let dir = TempDir::new().unwrap();
-    let service = AppService::open(dir.path().join("bbs.sqlite3"))
+    let service = AppService::open(dir.path().join("kakitsugi.sqlite3"))
         .await
         .unwrap();
     let app = api::router(service);
@@ -41,7 +41,7 @@ async fn ui_and_assets_are_embedded_and_served() {
             .to_vec(),
     )
     .unwrap();
-    assert!(html.contains("<h1><span aria-hidden=\"true\">■</span> Agent BBS</h1>"));
+    assert!(html.contains("<h1><span aria-hidden=\"true\">■</span> Kakitsugi</h1>"));
     assert!(html.contains("href=\"#main-content\">メインコンテンツへ移動</a>"));
     assert!(html.contains("<main id=\"main-content\" class=\"workspace\" tabindex=\"-1\">"));
     assert!(html.contains("role=\"search\""));

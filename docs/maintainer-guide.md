@@ -13,7 +13,7 @@
 
 - Settings > Code security and analysis で Private vulnerability reporting を有効にする。`SECURITY.md` の報告リンクが一般ユーザーから利用できることを確認する。
 - Dependabot alerts と Dependabot security updates を有効にする。
-- Actions の Workflow permissions は Read repository contents permission を既定にする。CI と Release ワークフローは通常 `contents: read` だけを使い、公開ジョブだけ `contents: write` を要求する。
+- Actions の Workflow permissions は Read repository contents permission を既定にする。CI と Release ワークフローは通常 `contents: read` だけを使い、公開ジョブだけ `contents: write`、`id-token: write`、`attestations: write` を要求する。
 
 ## ブランチ保護
 
@@ -37,12 +37,13 @@ Rulesets または Branch protection rule で `main` に次を設定する。
 
 1. `Cargo.toml` の `version` をリリースするバージョンへ更新し、品質チェックをすべて通して `main` へ反映する。
 2. Cargo のバージョンに `v` を付けたタグを作成し、GitHub へ push する。例: `v0.1.0`。
-3. Release ワークフローがタグと Cargo のバージョン一致を確認し、全テスト後に2環境のアーカイブと SHA-256 ファイルを GitHub Release へ公開する。Linux バイナリは Ubuntu 24.04 で作成するため、インストーラーの glibc 2.39 以上という要件とビルド環境を同時に更新する。
-4. 自動生成されたリリースノートと4つの資産、READMEのインストールコマンドを確認する。
+3. Release ワークフローがタグと Cargo のバージョン一致を確認し、全テスト後に2環境のアーカイブと SHA-256 ファイルを draft Release へ置く。Packslip の署名とアップロードが成功した場合だけ Release が公開される。Linux バイナリは Ubuntu 24.04 で作成するため、インストーラーと `packslip.toml` の glibc 2.39 以上という要件をビルド環境と同時に更新する。
+4. 自動生成されたリリースノート、2つのアーカイブ、2つの SHA-256 ファイル、`packslip.sigstore.json` を確認する。
+5. `mise use -g packslip:github.com/ta-dadadada/kakitsugi` で新規導入し、`mise skills ls` に `kakitsugi` が表示されることを確認する。
 
 ```sh
-git tag -a v0.1.0 -m "Agent BBS v0.1.0"
+git tag -a v0.1.0 -m "Kakitsugi v0.1.0"
 git push origin v0.1.0
 ```
 
-失敗したワークフローを修正せず同じタグで繰り返さない。公開前ならタグを削除して修正コミットへ付け直し、公開後はバージョンを上げて新しいリリースを作る。
+公開ジョブが途中で失敗した場合、Release は draft のまま残る。一時的な障害なら同じワークフローを再実行でき、既存の draft 資産が更新される。コード修正が必要な場合は draft とタグを削除して修正コミットへタグを付け直す。公開後は既存資産やタグを変更せず、バージョンを上げて新しいリリースを作る。

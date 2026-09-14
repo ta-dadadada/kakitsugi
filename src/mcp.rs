@@ -17,19 +17,20 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     domain::{
-        BoardsResponse, CreateThreadInput, EventsResponse, ListThreadsInput, Page, ReplyInput,
-        SearchInput, ThreadDetail, ThreadRecord, ThreadStatus, UpdateThreadInput, default_limit,
+        BoardsResponse, CreateThreadInput, CursorResponse, EventsResponse, ListThreadsInput, Page,
+        ReplyInput, SearchInput, ThreadDetail, ThreadRecord, ThreadStatus, UpdateThreadInput,
+        default_limit,
     },
     service::{AppError, AppService},
 };
 
 #[derive(Debug, Clone)]
-pub struct BbsMcp {
+pub struct KakitsugiMcp {
     service: AppService,
     tool_router: ToolRouter<Self>,
 }
 
-impl BbsMcp {
+impl KakitsugiMcp {
     pub fn new(service: AppService) -> Self {
         Self {
             service,
@@ -101,7 +102,7 @@ fn default_timeout_ms() -> u64 {
 }
 
 #[tool_router]
-impl BbsMcp {
+impl KakitsugiMcp {
     #[tool(description = "List the local bulletin boards available to agents")]
     async fn list_boards(&self) -> Result<Json<BoardsResponse>, ErrorData> {
         self.service
@@ -188,6 +189,15 @@ impl BbsMcp {
             .map_err(mcp_error)
     }
 
+    #[tool(description = "Get the latest durable event id before waiting for new updates")]
+    async fn get_cursor(&self) -> Result<Json<CursorResponse>, ErrorData> {
+        self.service
+            .latest_event_id()
+            .await
+            .map(|latest_event_id| Json(CursorResponse { latest_event_id }))
+            .map_err(mcp_error)
+    }
+
     #[tool(description = "Wait for durable updates after an event cursor")]
     async fn wait_for_updates(
         &self,
@@ -221,19 +231,19 @@ impl BbsMcp {
 }
 
 #[tool_handler(router = self.tool_router)]
-impl ServerHandler for BbsMcp {
+impl ServerHandler for KakitsugiMcp {
     fn get_info(&self) -> ServerInfo {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build()).with_instructions(
-            "Use threads and immutable posts to exchange durable information with other local AI agents. Read the latest event id before waiting for updates.",
+            "Use Kakitsugi for durable coordination between trusted local AI agents. Search or list threads before creating a new topic, and reply to an existing thread when it already covers the work. Use a stable author name. create_thread and reply are non-idempotent, so do not retry them when the outcome is unknown. Before waiting for only new activity, call get_cursor once and pass latest_event_id to wait_for_updates; advance the cursor to the greatest returned event id after processing each batch. Close completed threads with update_thread. Kakitsugi has no authentication and must remain local-only.",
         )
     }
 }
 
-pub type HttpMcpService = StreamableHttpService<BbsMcp, LocalSessionManager>;
+pub type HttpMcpService = StreamableHttpService<KakitsugiMcp, LocalSessionManager>;
 
 pub fn http_service(service: AppService, cancellation: CancellationToken) -> HttpMcpService {
     StreamableHttpService::new(
-        move || Ok(BbsMcp::new(service.clone())),
+        move || Ok(KakitsugiMcp::new(service.clone())),
         Default::default(),
         StreamableHttpServerConfig::default()
             .with_allowed_hosts(["localhost", "127.0.0.1", "::1"])
@@ -242,7 +252,9 @@ pub fn http_service(service: AppService, cancellation: CancellationToken) -> Htt
 }
 
 pub async fn serve_stdio(service: AppService) -> anyhow::Result<()> {
-    let running = BbsMcp::new(service).serve(rmcp::transport::stdio()).await?;
+    let running = KakitsugiMcp::new(service)
+        .serve(rmcp::transport::stdio())
+        .await?;
     running.waiting().await?;
     Ok(())
 }

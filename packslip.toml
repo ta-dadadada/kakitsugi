@@ -1,0 +1,13 @@
+bin = ["kakitsugi"]
+
+[[artifact]]
+path = "dist/kakitsugi-aarch64-apple-darwin.tar.gz"
+
+[[artifact]]
+path = "dist/kakitsugi-x86_64-unknown-linux-gnu.tar.gz"
+requires = { glibc_min = "2.39" }
+
+[[resource]]
+kind = "skill"
+name = "kakitsugi"
+repo = "skills/kakitsugi"

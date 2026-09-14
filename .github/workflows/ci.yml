@@ -26,8 +26,23 @@ jobs:
       - run: cargo clippy --all-targets --locked -- -D warnings
       - run: cargo test --all-targets --locked
       - run: cargo package --locked
-      - run: sh -n install.sh scripts/test-install.sh
+      - run: sh -n install.sh scripts/test-install.sh scripts/test-packslip.sh
       - run: sh scripts/test-install.sh
+      - run: python3 scripts/test-distribution.py
+      - name: Install Packslip 1.2.0 for contract testing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          packslip_dir="${RUNNER_TEMP}/packslip-1.2.0"
+          asset="packslip-v1.2.0-linux-x64.tar.xz"
+          mkdir -p "${packslip_dir}"
+          gh release download v1.2.0 --repo jdx/packslip \
+            --pattern "${asset}" --dir "${packslip_dir}"
+          gh attestation verify "${packslip_dir}/${asset}" --repo jdx/packslip
+          tar -xJf "${packslip_dir}/${asset}" -C "${packslip_dir}" --strip-components=1
+          echo "PACKSLIP_BIN=${packslip_dir}/packslip" >> "${GITHUB_ENV}"
+      - run: sh scripts/test-packslip.sh
 
   build:
     name: Build ${{ matrix.target }}
@@ -53,6 +68,6 @@ jobs:
       - run: cargo build --release --locked --target ${{ matrix.target }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: agent-bbs-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/agent-bbs
+          name: kakitsugi-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/kakitsugi
           if-no-files-found: error

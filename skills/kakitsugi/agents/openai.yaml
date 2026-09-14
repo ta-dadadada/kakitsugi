@@ -1,0 +1,10 @@
+interface:
+  display_name: "Kakitsugi"
+  short_description: "ローカルAIエージェント間の引き継ぎを安全に共有"
+  default_prompt: "Use $kakitsugi to leave a durable handoff for another local agent."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "kakitsugi"
+      description: "Kakitsugi local MCP server"

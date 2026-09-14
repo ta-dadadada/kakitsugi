@@ -1,6 +1,11 @@
 use std::time::Duration;
 
-use agent_bbs::{
+use axum::{
+    body::Body,
+    http::{Request, StatusCode, header},
+};
+use http_body_util::BodyExt;
+use kakitsugi::{
     api,
     domain::{
         CreateThreadResponse, ErrorEnvelope, PostPage, ReplyResponse, ThreadStatus,
@@ -8,11 +13,6 @@ use agent_bbs::{
     },
     service::AppService,
 };
-use axum::{
-    body::Body,
-    http::{Request, StatusCode, header},
-};
-use http_body_util::BodyExt;
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 use tempfile::TempDir;
@@ -20,7 +20,7 @@ use tower::ServiceExt;
 
 async fn app() -> (TempDir, axum::Router) {
     let dir = TempDir::new().unwrap();
-    let service = AppService::open(dir.path().join("bbs.sqlite3"))
+    let service = AppService::open(dir.path().join("kakitsugi.sqlite3"))
         .await
         .unwrap();
     (dir, api::router(service))

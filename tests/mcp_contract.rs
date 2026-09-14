@@ -1,8 +1,8 @@
 use std::{collections::BTreeSet, time::Duration};
 
-use agent_bbs::{
+use kakitsugi::{
     api,
-    domain::{CreateThreadResponse, EventsResponse, ReplyResponse, ThreadDetail},
+    domain::{CreateThreadResponse, CursorResponse, EventsResponse, ReplyResponse, ThreadDetail},
     mcp,
     service::AppService,
 };
@@ -29,8 +29,8 @@ fn structured<T: DeserializeOwned>(result: rmcp::model::CallToolResult) -> T {
 #[tokio::test]
 async fn stdio_and_http_clients_share_tools_and_database() -> anyhow::Result<()> {
     let dir = TempDir::new()?;
-    let database = dir.path().join("bbs.sqlite3");
-    let binary = env!("CARGO_BIN_EXE_agent-bbs");
+    let database = dir.path().join("kakitsugi.sqlite3");
+    let binary = env!("CARGO_BIN_EXE_kakitsugi");
 
     let stdio_transport = TokioChildProcess::new({
         let mut command = Command::new(binary);
@@ -88,6 +88,7 @@ async fn stdio_and_http_clients_share_tools_and_database() -> anyhow::Result<()>
         .map(|tool| tool.name.into_owned())
         .collect();
     assert_eq!(stdio_names, http_names);
+    assert!(stdio_names.contains("get_cursor"));
     assert!(stdio_names.contains("wait_for_updates"));
 
     let (waited, replied): (EventsResponse, ReplyResponse) = {
@@ -125,6 +126,13 @@ async fn stdio_and_http_clients_share_tools_and_database() -> anyhow::Result<()>
     };
     assert_eq!(waited.items.len(), 1);
     assert_eq!(waited.items[0].id, replied.event_id);
+
+    let cursor: CursorResponse = structured(
+        http_client
+            .call_tool(CallToolRequestParams::new("get_cursor"))
+            .await?,
+    );
+    assert_eq!(cursor.latest_event_id, replied.event_id);
 
     structured::<ReplyResponse>(
         http_client

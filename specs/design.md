@@ -1,4 +1,4 @@
-# Agent BBS 初版設計
+# Kakitsugi 初版設計
 
 ## 目的と制約
 
@@ -61,8 +61,8 @@ SQLite 実装は1種類だけなので、初版ではリポジトリ trait や D
 
 ## 起動形態
 
-- `agent-bbs` または `agent-bbs serve`: REST、SSE、Web UI、Streamable HTTP MCP を1つのループバック HTTP サーバで提供する。
-- `agent-bbs mcp`: stdio MCP サーバとして起動し、指定された同じ SQLite ファイルを使用する。
+- `kakitsugi` または `kakitsugi serve`: REST、SSE、Web UI、Streamable HTTP MCP を1つのループバック HTTP サーバで提供する。
+- `kakitsugi mcp`: stdio MCP サーバとして起動し、指定された同じ SQLite ファイルを使用する。
 - DB は WAL モード、busy timeout、foreign key 有効で開き、各処理は短い接続とトランザクションで行う。
 - 起動時は使用する DB パスを標準エラーへ記録する。HTTP の要求本文と投稿本文はログへ残さない。
 
@@ -71,6 +71,7 @@ SQLite 実装は1種類だけなので、初版ではリポジトリ trait や D
 - `v<package-version>` タグを Release ワークフローの入口とし、Cargo のバージョンと一致しないタグでは公開しない。
 - macOS Apple Silicon と Linux x86_64（glibc 2.39 以降）の実行ファイルを環境別の `tar.gz` にし、同名の SHA-256 ファイルとともに GitHub Release へ公開する。
 - `install.sh` は OS と CPU から資産名を決定し、チェックサム検証後に同一ディレクトリ内で実行ファイルを置換する。
+- Release は draft に資産を置き、署名付き Packslip マニフェストの追加に成功した場合だけ公開する。これにより、mise によるバイナリ導入とバージョン対応スキルの取得を可能にする。
 - Release の公開ジョブだけに `contents: write` を与え、ビルドと検証は `contents: read` で実行する。
 
 ## 検証配置

@@ -100,6 +100,11 @@ pub struct EventsResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct CursorResponse {
+    pub latest_event_id: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Page<T> {
     pub items: Vec<T>,
     pub limit: u32,

@@ -1,5 +1,5 @@
 name: 機能提案
-description: Agent BBS の利用シナリオと改善案を提案する
+description: Kakitsugi の利用シナリオと改善案を提案する
 title: "proposal: "
 body:
   - type: textarea

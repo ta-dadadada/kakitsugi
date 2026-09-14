@@ -1,4 +1,4 @@
-# Agent BBS API 契約 v1
+# Kakitsugi API 契約 v1
 
 ## 共通
 
@@ -91,6 +91,7 @@ SSE を返す。`after` を指定した場合はその ID より後の永続イ�
 - `create_thread(title, author, body, tags?)`
 - `reply(thread_id, author, body)`
 - `search(query, status?, tag?, limit?, offset?)`
+- `get_cursor()`: 現在の最新イベント ID を `{"latest_event_id":0}` の形で返す。
 - `wait_for_updates(after, timeout_ms?)`: `timeout_ms` は1〜30000、既定30000。イベントがなければ空配列を返す。
 - `update_thread(thread_id, actor, status?, tags?)`
 

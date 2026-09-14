@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use agent_bbs::{
+use kakitsugi::{
     domain::{CreateThreadInput, ReplyInput, SearchInput, ThreadStatus, UpdateThreadInput},
     service::{AppError, AppService},
 };
@@ -8,7 +8,7 @@ use tempfile::TempDir;
 
 async fn service() -> (TempDir, AppService) {
     let dir = TempDir::new().unwrap();
-    let service = AppService::open(dir.path().join("bbs.sqlite3"))
+    let service = AppService::open(dir.path().join("kakitsugi.sqlite3"))
         .await
         .unwrap();
     (dir, service)
@@ -44,7 +44,7 @@ async fn create_reply_and_reopen_database_preserves_complete_exchange() {
     assert!(reply.event_id > created.event_id);
 
     drop(service);
-    let reopened = AppService::open(dir.path().join("bbs.sqlite3"))
+    let reopened = AppService::open(dir.path().join("kakitsugi.sqlite3"))
         .await
         .unwrap();
     let detail = reopened
@@ -199,7 +199,7 @@ async fn wait_for_updates_returns_durable_event_after_cursor() {
 #[tokio::test]
 async fn wait_for_updates_detects_writes_from_an_independent_service() {
     let dir = TempDir::new().unwrap();
-    let database = dir.path().join("bbs.sqlite3");
+    let database = dir.path().join("kakitsugi.sqlite3");
     let reader = AppService::open(database.clone()).await.unwrap();
     let writer = AppService::open(database).await.unwrap();
     let after = reader.latest_event_id().await.unwrap();

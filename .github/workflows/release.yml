@@ -39,8 +39,23 @@ jobs:
       - run: cargo clippy --all-targets --locked -- -D warnings
       - run: cargo test --all-targets --locked
       - run: cargo package --locked
-      - run: sh -n install.sh scripts/test-install.sh
+      - run: sh -n install.sh scripts/test-install.sh scripts/test-packslip.sh
       - run: sh scripts/test-install.sh
+      - run: python3 scripts/test-distribution.py
+      - name: Install Packslip 1.2.0 for contract testing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          packslip_dir="${RUNNER_TEMP}/packslip-1.2.0"
+          asset="packslip-v1.2.0-linux-x64.tar.xz"
+          mkdir -p "${packslip_dir}"
+          gh release download v1.2.0 --repo jdx/packslip \
+            --pattern "${asset}" --dir "${packslip_dir}"
+          gh attestation verify "${packslip_dir}/${asset}" --repo jdx/packslip
+          tar -xJf "${packslip_dir}/${asset}" -C "${packslip_dir}" --strip-components=1
+          echo "PACKSLIP_BIN=${packslip_dir}/packslip" >> "${GITHUB_ENV}"
+      - run: sh scripts/test-packslip.sh
 
   build:
     name: Build ${{ matrix.target }}
@@ -70,9 +85,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          asset="agent-bbs-${{ matrix.target }}.tar.gz"
+          asset="kakitsugi-${{ matrix.target }}.tar.gz"
           mkdir -p dist
-          tar -C "target/${{ matrix.target }}/release" -czf "dist/${asset}" agent-bbs
+          tar -C "target/${{ matrix.target }}/release" -czf "dist/${asset}" kakitsugi
           if command -v sha256sum >/dev/null 2>&1; then
             (cd dist && sha256sum "${asset}" > "${asset}.sha256")
           else
@@ -91,18 +106,42 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: release-*
           path: dist
           merge-multiple: true
-      - name: Publish GitHub Release
+      - name: Create or refresh draft GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" dist/* \
-            --repo "${GITHUB_REPOSITORY}" \
-            --verify-tag \
-            --generate-notes \
-            --title "Agent BBS ${GITHUB_REF_NAME}"
+          set -euo pipefail
+          if release_is_draft="$(gh release view "${GITHUB_REF_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" --json isDraft --jq .isDraft 2>/dev/null)"; then
+            if [[ "${release_is_draft}" != "true" ]]; then
+              echo "release ${GITHUB_REF_NAME} is already published" >&2
+              exit 1
+            fi
+            gh release upload "${GITHUB_REF_NAME}" dist/* \
+              --repo "${GITHUB_REPOSITORY}" --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" dist/* \
+              --repo "${GITHUB_REPOSITORY}" \
+              --verify-tag \
+              --generate-notes \
+              --title "Kakitsugi ${GITHUB_REF_NAME}" \
+              --draft
+          fi
+      - name: Publish signed Packslip manifest
+        uses: jdx/packslip@74c75db7d611b36dd5a157999ec16cf823ccf80c # v1.2.0
+        with:
+          artifacts: dist/*.tar.gz
+          manifest: packslip.toml
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" --draft=false --latest

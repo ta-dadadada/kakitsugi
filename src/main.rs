@@ -9,13 +9,13 @@ use directories::ProjectDirs;
 use tokio_util::sync::CancellationToken;
 use tracing_subscriber::EnvFilter;
 
-use agent_bbs::{api, mcp, service::AppService};
+use kakitsugi::{api, mcp, service::AppService};
 
 const DEFAULT_PORT: u16 = 8787;
 
 #[derive(Debug, Parser)]
 #[command(
-    name = "agent-bbs",
+    name = "kakitsugi",
     version,
     about = "Local bulletin board for AI agents"
 )]
@@ -45,7 +45,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "agent_bbs=info,tower_http=info".into()),
+                .unwrap_or_else(|_| "kakitsugi=info,tower_http=info".into()),
         )
         .with_writer(std::io::stderr)
         .init();
@@ -72,7 +72,7 @@ async fn serve(service: AppService, port: u16) -> Result<()> {
         .await
         .with_context(|| format!("failed to bind http://{address}"))?;
     let actual = listener.local_addr()?;
-    tracing::info!(url = %format!("http://{actual}"), mcp = %format!("http://{actual}/mcp"), "agent-bbs is ready");
+    tracing::info!(url = %format!("http://{actual}"), mcp = %format!("http://{actual}/mcp"), "kakitsugi is ready");
 
     axum::serve(listener, app)
         .with_graceful_shutdown({
@@ -87,7 +87,7 @@ async fn serve(service: AppService, port: u16) -> Result<()> {
 }
 
 fn default_database_path() -> PathBuf {
-    ProjectDirs::from("dev", "agent-bbs", "agent-bbs")
-        .map(|dirs| dirs.data_local_dir().join("agent-bbs.sqlite3"))
-        .unwrap_or_else(|| PathBuf::from("agent-bbs.sqlite3"))
+    ProjectDirs::from("dev", "kakitsugi", "kakitsugi")
+        .map(|dirs| dirs.data_local_dir().join("kakitsugi.sqlite3"))
+        .unwrap_or_else(|| PathBuf::from("kakitsugi.sqlite3"))
 }

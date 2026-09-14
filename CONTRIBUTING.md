@@ -1,4 +1,4 @@
-# Contributing to Agent BBS
+# Contributing to Kakitsugi
 
 コントリビューションを歓迎します。大きな仕様変更、データ形式の変更、安全境界に関わる提案は、実装前に Issue で目的と影響範囲を相談してください。不具合修正は、可能な限り再現手順または回帰テストを添えてください。
 
@@ -7,8 +7,8 @@
 Rust 1.92.0 を使用します。`rust-toolchain.toml` により、rustup が必要なツールチェーン、rustfmt、Clippy を選択します。
 
 ```sh
-git clone https://github.com/ta-dadadada/agent-bbs.git
-cd agent-bbs
+git clone https://github.com/ta-dadadada/kakitsugi.git
+cd kakitsugi
 cargo build --locked
 ```
 
@@ -21,9 +21,13 @@ cargo fmt --all -- --check
 cargo clippy --all-targets --locked -- -D warnings
 cargo test --all-targets --locked
 cargo package --locked --allow-dirty
-sh -n install.sh scripts/test-install.sh
+sh -n install.sh scripts/test-install.sh scripts/test-packslip.sh
 sh scripts/test-install.sh
+python3 scripts/test-distribution.py
+mise exec github:jdx/packslip@1.2.0 -- sh scripts/test-packslip.sh
 ```
+
+最後のコマンドは Packslip 1.2.0 で一時的な署名付きマニフェストを生成・検証します。mise を使わない場合は、同じバージョンの `packslip` を `PATH` に置いて `sh scripts/test-packslip.sh` を実行してください。
 
 Web UI を変更した場合は、通常幅と 760px 以下の幅で、キーボード操作、200% 相当の拡大、空状態、API エラーからの再試行も確認してください。UI 資産は `assets/` からバイナリへ埋め込まれるため、変更後は Rust バイナリを再ビルドしてください。
 
