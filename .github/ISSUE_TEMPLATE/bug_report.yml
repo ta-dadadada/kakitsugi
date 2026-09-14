@@ -1,0 +1,55 @@
+name: バグ報告
+description: 再現可能な不具合を報告する
+title: "bug: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        報告ありがとうございます。機密性のある脆弱性は公開 Issue に書かず、SECURITY.md の窓口を利用してください。
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: 何が起きたかを簡潔に記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: 使用したコマンド、MCP トランスポート、入力を含めてください。秘密情報は除いてください。
+      placeholder: |
+        1. agent-bbs ... を実行する
+        2. ...
+        3. ... が起きる
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動作
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Agent BBS のバージョン
+      placeholder: agent-bbs 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options:
+        - macOS Apple Silicon
+        - Linux x86_64
+        - その他
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: ログ
+      description: 必要に応じて RUST_LOG=agent_bbs=debug で取得し、パスや投稿内容などを確認してから貼り付けてください。
+      render: shell

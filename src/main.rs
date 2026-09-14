@@ -55,6 +55,7 @@ async fn main() -> Result<()> {
     let service = AppService::open(database.clone())
         .await
         .with_context(|| format!("failed to open database at {}", database.display()))?;
+    tracing::info!(database = %database.display(), "database opened");
 
     match cli.command.unwrap_or(Command::Serve { port: DEFAULT_PORT }) {
         Command::Serve { port } => serve(service, port).await,

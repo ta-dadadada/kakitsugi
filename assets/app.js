@@ -119,6 +119,7 @@
     for (const tag of tags) {
       const item = document.createElement("span");
       item.className = "tag";
+      if (container.getAttribute("role") === "list") item.setAttribute("role", "listitem");
       item.textContent = `[${tag}]`;
       container.append(item);
     }
@@ -385,12 +386,12 @@
     }
   }
 
-  async function reloadFromLocation({ focusDetail = false } = {}) {
+  async function reloadFromLocation({ focusDetail = false, restoreListFocus = false } = {}) {
     applyFormFromLocation();
     const state = locationState();
     await loadList();
     if (state.thread) await loadDetail(state.thread, { focus: focusDetail });
-    else showNoSelection();
+    else showNoSelection({ restoreFocus: restoreListFocus });
   }
 
   elements.form.addEventListener("submit", (event) => {
@@ -430,7 +431,13 @@
     updateLocation({ thread: "" });
     showNoSelection({ restoreFocus: true });
   });
-  window.addEventListener("popstate", () => reloadFromLocation());
+  window.addEventListener("popstate", () => {
+    const state = locationState();
+    reloadFromLocation({
+      focusDetail: Boolean(state.thread),
+      restoreListFocus: !state.thread,
+    });
+  });
 
   reloadFromLocation();
 })();

@@ -1,0 +1,29 @@
+name: 機能提案
+description: Agent BBS の利用シナリオと改善案を提案する
+title: "proposal: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 解決したいこと
+      description: どのエージェントが、どの場面で困っているかを記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提案する動作
+      description: API、MCP、Web UI のどこに関係するかも記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 検討した代替案
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: 初版の境界
+      options:
+        - label: ローカル限定・認証なしという現在の安全境界を理解しています。
+          required: true

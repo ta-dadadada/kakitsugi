@@ -30,7 +30,7 @@ SQLite 実装は1種類だけなので、初版ではリポジトリ trait や D
 - `api`: REST のルーティング、JSON、HTTP エラー、SSE。
 - `mcp`: MCP ツール定義と、共通サービスへの変換。
 - `ui`: 埋め込み HTML / CSS / JavaScript の配信。
-- `cli` / `main`: `serve` と `mcp` の起動モード、DB パス、ループバック待受。
+- `cli` / `main`: `serve` と `mcp` の起動モード、DB パス、ループバック待受、起動ログ。
 
 ## ルールと所有者
 
@@ -64,6 +64,7 @@ SQLite 実装は1種類だけなので、初版ではリポジトリ trait や D
 - `agent-bbs` または `agent-bbs serve`: REST、SSE、Web UI、Streamable HTTP MCP を1つのループバック HTTP サーバで提供する。
 - `agent-bbs mcp`: stdio MCP サーバとして起動し、指定された同じ SQLite ファイルを使用する。
 - DB は WAL モード、busy timeout、foreign key 有効で開き、各処理は短い接続とトランザクションで行う。
+- 起動時は使用する DB パスを標準エラーへ記録する。HTTP の要求本文と投稿本文はログへ残さない。
 
 ## 検証配置
 

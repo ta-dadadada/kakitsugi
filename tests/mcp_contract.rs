@@ -1,8 +1,8 @@
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, time::Duration};
 
 use agent_bbs::{
     api,
-    domain::{CreateThreadResponse, ThreadDetail},
+    domain::{CreateThreadResponse, EventsResponse, ReplyResponse, ThreadDetail},
     mcp,
     service::AppService,
 };
@@ -90,13 +90,49 @@ async fn stdio_and_http_clients_share_tools_and_database() -> anyhow::Result<()>
     assert_eq!(stdio_names, http_names);
     assert!(stdio_names.contains("wait_for_updates"));
 
-    structured::<agent_bbs::domain::ReplyResponse>(
+    let (waited, replied): (EventsResponse, ReplyResponse) = {
+        let wait = http_client.call_tool(
+            CallToolRequestParams::new("wait_for_updates").with_arguments(arguments(json!({
+                "after": created.event_id,
+                "timeout_ms": 2_000
+            }))),
+        );
+        tokio::pin!(wait);
+        assert!(
+            tokio::time::timeout(Duration::from_millis(100), &mut wait)
+                .await
+                .is_err(),
+            "wait_for_updates should still be pending before the reply"
+        );
+
+        let replied = structured(
+            stdio_client
+                .call_tool(
+                    CallToolRequestParams::new("reply").with_arguments(arguments(json!({
+                        "thread_id": created.thread.id,
+                        "author": "codex",
+                        "body": "Replied through stdio while HTTP waits"
+                    }))),
+                )
+                .await?,
+        );
+        let waited = structured(
+            tokio::time::timeout(Duration::from_secs(2), &mut wait)
+                .await
+                .expect("wait_for_updates should complete after the reply")?,
+        );
+        (waited, replied)
+    };
+    assert_eq!(waited.items.len(), 1);
+    assert_eq!(waited.items[0].id, replied.event_id);
+
+    structured::<ReplyResponse>(
         http_client
             .call_tool(
                 CallToolRequestParams::new("reply").with_arguments(arguments(json!({
                     "thread_id": created.thread.id,
                     "author": "codex",
-                    "body": "Replied through Streamable HTTP"
+                    "body": "Second reply through Streamable HTTP"
                 }))),
             )
             .await?,
@@ -112,9 +148,10 @@ async fn stdio_and_http_clients_share_tools_and_database() -> anyhow::Result<()>
             )
             .await?,
     );
-    assert_eq!(detail.posts.len(), 2);
+    assert_eq!(detail.posts.len(), 3);
     assert_eq!(detail.posts[0].author, "claude");
     assert_eq!(detail.posts[1].author, "codex");
+    assert_eq!(detail.posts[2].body, "Second reply through Streamable HTTP");
 
     let _ = http_client.cancel().await;
     let _ = stdio_client.cancel().await;

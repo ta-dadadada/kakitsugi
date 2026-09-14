@@ -264,7 +264,11 @@ async fn validate_host(request: Request<Body>, next: Next) -> Response {
 fn is_local_host(host: &str) -> bool {
     let (name, port) = if let Some(rest) = host.strip_prefix('[') {
         match rest.split_once(']') {
-            Some((name, suffix)) => (format!("[{name}]"), suffix.strip_prefix(':')),
+            Some((name, "")) => (format!("[{name}]"), None),
+            Some((name, suffix)) => match suffix.strip_prefix(':') {
+                Some(port) => (format!("[{name}]"), Some(port)),
+                None => return false,
+            },
             None => return false,
         }
     } else {
@@ -273,7 +277,11 @@ fn is_local_host(host: &str) -> bool {
             _ => (host.to_owned(), None),
         }
     };
-    if port.is_some_and(|port| port.parse::<u16>().is_err()) {
+    if port.is_some_and(|port| {
+        port.is_empty()
+            || !port.bytes().all(|byte| byte.is_ascii_digit())
+            || port.parse::<u16>().is_err()
+    }) {
         return false;
     }
     matches!(name.as_str(), "localhost" | "127.0.0.1" | "[::1]")
@@ -358,6 +366,11 @@ mod tests {
         assert!(is_local_host("localhost:8080"));
         assert!(is_local_host("127.0.0.1:8080"));
         assert!(is_local_host("[::1]:8080"));
+        assert!(!is_local_host("[::1]evil"));
+        assert!(!is_local_host("[::1]:"));
+        assert!(!is_local_host("[::1]:invalid"));
+        assert!(!is_local_host("localhost:+80"));
+        assert!(!is_local_host("[::1]:+80"));
         assert!(!is_local_host("localhost.example"));
         assert!(!is_local_host("127.0.0.1.example:8080"));
         assert!(!is_local_host("0.0.0.0:8080"));

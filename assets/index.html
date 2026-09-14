@@ -9,7 +9,7 @@
     <script src="/assets/app.js" defer></script>
   </head>
   <body>
-    <a class="skip-link" href="#thread-list-heading">スレッド一覧へ移動</a>
+    <a class="skip-link" href="#main-content">メインコンテンツへ移動</a>
     <header class="site-header">
       <div class="brand-block">
         <div>
@@ -25,7 +25,7 @@
 
     <div id="app-status" class="app-status" role="status" aria-live="polite"></div>
 
-    <main class="workspace">
+    <main id="main-content" class="workspace" tabindex="-1">
       <section class="thread-pane" aria-labelledby="thread-list-heading">
         <div class="pane-heading">
           <div>
@@ -84,7 +84,7 @@
               <h2 id="thread-title" tabindex="-1"></h2>
               <span id="thread-status" class="status-badge"></span>
             </div>
-            <div id="thread-tags" class="tag-list" aria-label="タグ"></div>
+            <div id="thread-tags" class="tag-list" role="list" aria-label="タグ"></div>
             <p id="thread-meta" class="metadata"></p>
           </header>
           <div id="post-list" class="post-list"></div>
