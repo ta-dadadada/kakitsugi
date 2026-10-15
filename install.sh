@@ -49,39 +49,16 @@ if [ -z "$target" ]; then
   platform="$(uname -s):$(uname -m)"
   case "$platform" in
     Darwin:arm64 | Darwin:aarch64) target="aarch64-apple-darwin" ;;
-    Linux:x86_64 | Linux:amd64) target="x86_64-unknown-linux-gnu" ;;
+    Linux:x86_64 | Linux:amd64) target="x86_64-unknown-linux-musl" ;;
+    Linux:aarch64 | Linux:arm64) target="aarch64-unknown-linux-musl" ;;
     *) fail "unsupported platform ${platform}; use a supported release or build from source" ;;
   esac
 fi
 
 case "$target" in
-  aarch64-apple-darwin | x86_64-unknown-linux-gnu) ;;
+  aarch64-apple-darwin | x86_64-unknown-linux-musl | aarch64-unknown-linux-musl) ;;
   *) fail "unsupported target ${target}" ;;
 esac
-
-if [ "$target" = "x86_64-unknown-linux-gnu" ]; then
-  command -v getconf >/dev/null 2>&1 ||
-    fail "Linux releases require glibc 2.39 or later; getconf was not found"
-  libc_version="$(getconf GNU_LIBC_VERSION 2>/dev/null)" ||
-    fail "Linux releases require glibc 2.39 or later"
-  case "$libc_version" in
-    "glibc "*) ;;
-    *) fail "Linux releases require glibc 2.39 or later; found ${libc_version}" ;;
-  esac
-
-  libc_number="${libc_version#glibc }"
-  libc_major="${libc_number%%.*}"
-  libc_minor_rest="${libc_number#*.}"
-  libc_minor="${libc_minor_rest%%.*}"
-  case "${libc_major}:${libc_minor}" in
-    *[!0-9:]* | :* | *:) fail "could not determine the installed glibc version" ;;
-  esac
-  if [ "$libc_major" -lt 2 ] || {
-    [ "$libc_major" -eq 2 ] && [ "$libc_minor" -lt 39 ]
-  }; then
-    fail "Linux releases require glibc 2.39 or later; found ${libc_number}"
-  fi
-fi
 
 command -v curl >/dev/null 2>&1 || fail "curl is required"
 command -v tar >/dev/null 2>&1 || fail "tar is required"

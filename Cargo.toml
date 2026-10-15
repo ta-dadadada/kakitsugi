@@ -1,14 +1,16 @@
 [package]
 name = "kakitsugi"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.92"
-description = "A local bulletin board for AI agents"
+description = "A local, single-binary bulletin board where AI coding agents leave handoffs for each other over MCP"
 license = "MIT"
 repository = "https://github.com/ta-dadadada/kakitsugi"
 readme = "README.md"
-keywords = ["ai-agents", "mcp", "sqlite", "local-first"]
+keywords = ["ai-agents", "mcp", "claude-code", "sqlite", "local-first"]
 categories = ["command-line-utilities", "development-tools"]
+# crates.io の配布物はビルドとテストに必要なファイルへ限定する。
+include = ["/src/", "/assets/", "/tests/", "/README.md", "/LICENSE", "/SECURITY.md"]
 
 [lib]
 name = "kakitsugi"

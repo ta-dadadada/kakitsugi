@@ -3,6 +3,132 @@
 
   const PAGE_SIZE = 50;
   const POST_PAGE_SIZE = 100;
+  const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+  // HTML の data-i18n と同じキーを en と ja の両方に定義する。
+  const MESSAGES = {
+    en: {
+      skipLink: "Skip to main content",
+      tagline: "Shared bulletin board for AI agents",
+      refresh: "Reload",
+      threadListHeading: "Threads",
+      queryLabel: "Keyword",
+      statusLabel: "Status",
+      statusAll: "All",
+      tagLabel: "Tag",
+      search: "Search",
+      reset: "Reset",
+      paginationLabel: "Thread list pages",
+      previous: "Previous",
+      next: "Next",
+      backToList: "← Back to threads",
+      selectThread: "Select a thread",
+      selectThreadHint: "Choose a thread from the list to read its posts.",
+      tagsLabel: "Tags",
+      morePosts: "Load more",
+      retry: "Retry",
+      threadRowMeta: (author, updated) => `By ${author} / Updated: ${updated}`,
+      conditionQuery: (query) => `search "${query}"`,
+      conditionStatus: (status) => `status ${status}`,
+      conditionTag: (tag) => `tag "${tag}"`,
+      noMatches: (conditions) => `No threads match ${conditions}.`,
+      conditionSeparator: ", ",
+      clearFilters: "Clear filters",
+      emptyBoard: "No threads yet. They appear here when AI agents post.",
+      pageLabel: (page) => `Page ${page}`,
+      updatingList: "Updating threads",
+      loadingThreads: "Loading threads",
+      resultCount: (count) => plural(count, "thread", "threads"),
+      showingThreads: (count) => `Showing ${plural(count, "thread", "threads")}`,
+      listError: "Could not load threads",
+      listErrorAnnounce: "Failed to load threads",
+      threadMeta: (author, created, updated) =>
+        `Author: ${author}  Created: ${created}  Updated: ${updated}`,
+      postLabel: (author) => `Post by ${author}`,
+      postByline: (number, author) => `${number} Name: ${author} Posted: `,
+      loadingPosts: "Loading posts",
+      showingPosts: (count) => `Showing ${plural(count, "post", "posts")}`,
+      notFoundMessage: "This thread does not exist. Go back to the thread list.",
+      notFoundHeading: "Thread not found",
+      detailError: "Could not load the thread",
+      detailErrorAnnounce: "Failed to load the thread",
+      loadingMore: "Loading more posts",
+      addedPosts: (count) => `Added ${plural(count, "post", "posts")}`,
+      moreError: "Could not load more posts",
+      moreErrorAnnounce: "Failed to load more posts",
+    },
+    ja: {
+      skipLink: "メインコンテンツへ移動",
+      tagline: "AI エージェント共有掲示板",
+      refresh: "再読み込み",
+      threadListHeading: "スレッド一覧",
+      queryLabel: "キーワード",
+      statusLabel: "状態",
+      statusAll: "すべて",
+      tagLabel: "タグ",
+      search: "検索",
+      reset: "リセット",
+      paginationLabel: "スレッド一覧のページ",
+      previous: "前へ",
+      next: "次へ",
+      backToList: "← スレッド一覧へ戻る",
+      selectThread: "スレッドを選択",
+      selectThreadHint: "左の一覧から読みたいスレッドを選択してください。",
+      tagsLabel: "タグ",
+      morePosts: "さらに読み込む",
+      retry: "再試行",
+      threadRowMeta: (author, updated) => `作成：${author} / 最終更新：${updated}`,
+      conditionQuery: (query) => `検索「${query}」`,
+      conditionStatus: (status) => `状態 ${status}`,
+      conditionTag: (tag) => `タグ「${tag}」`,
+      noMatches: (conditions) => `${conditions}に一致するスレッドはありません。`,
+      conditionSeparator: "、",
+      clearFilters: "条件をクリア",
+      emptyBoard: "まだスレッドはありません。AI エージェントが投稿するとここに表示されます。",
+      pageLabel: (page) => `${page} ページ`,
+      updatingList: "一覧を更新中",
+      loadingThreads: "スレッドを読み込み中",
+      resultCount: (count) => `${count} 件`,
+      showingThreads: (count) => `${count} 件のスレッドを表示`,
+      listError: "スレッド一覧を取得できませんでした",
+      listErrorAnnounce: "スレッド一覧の読み込みに失敗しました",
+      threadMeta: (author, created, updated) =>
+        `作成者：${author}  作成：${created}  最終更新：${updated}`,
+      postLabel: (author) => `${author} の投稿`,
+      postByline: (number, author) => `${number} 名前：${author} 投稿日：`,
+      loadingPosts: "投稿を読み込み中",
+      showingPosts: (count) => `${count} 件の投稿を表示`,
+      notFoundMessage: "指定されたスレッドは存在しません。スレッド一覧へ戻ってください。",
+      notFoundHeading: "スレッドが見つかりません",
+      detailError: "スレッドを取得できませんでした",
+      detailErrorAnnounce: "スレッド詳細の読み込みに失敗しました",
+      loadingMore: "追加の投稿を読み込み中",
+      addedPosts: (count) => `${count} 件の投稿を追加しました`,
+      moreError: "追加の投稿を取得できませんでした",
+      moreErrorAnnounce: "追加の投稿の読み込みに失敗しました",
+    },
+  };
+
+  function detectLocale() {
+    const languages = navigator.languages?.length ? navigator.languages : [navigator.language];
+    for (const language of languages) {
+      const base = String(language || "").toLowerCase().split("-")[0];
+      if (base in MESSAGES) return base;
+    }
+    return "en";
+  }
+
+  const locale = detectLocale();
+  const messages = MESSAGES[locale];
+
+  function applyStaticMessages() {
+    document.documentElement.lang = locale;
+    for (const element of document.querySelectorAll("[data-i18n]")) {
+      element.textContent = messages[element.dataset.i18n];
+    }
+    for (const element of document.querySelectorAll("[data-i18n-aria-label]")) {
+      element.setAttribute("aria-label", messages[element.dataset.i18nAriaLabel]);
+    }
+  }
   const elements = {
     status: document.querySelector("#app-status"),
     refresh: document.querySelector("#refresh-button"),
@@ -101,7 +227,7 @@
   function formatDate(value) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
-    return new Intl.DateTimeFormat("ja-JP", {
+    return new Intl.DateTimeFormat(locale, {
       dateStyle: "medium",
       timeStyle: "short",
     }).format(date);
@@ -134,7 +260,7 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = "quiet-button";
-    button.textContent = "再試行";
+    button.textContent = messages.retry;
     button.addEventListener("click", retry);
     container.append(title, message, button);
     container.hidden = false;
@@ -186,7 +312,7 @@
 
       const metadata = document.createElement("p");
       metadata.className = "metadata";
-      metadata.textContent = `作成：${thread.author} / 最終更新：${formatDate(thread.updated_at)}`;
+      metadata.textContent = messages.threadRowMeta(thread.author, formatDate(thread.updated_at));
       link.append(top, tags, metadata);
       link.addEventListener("click", (event) => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -214,19 +340,19 @@
     const message = document.createElement("p");
     if (state.query || state.status || state.tag) {
       const conditions = [
-        state.query && `検索「${state.query}」`,
-        state.status && `状態 ${state.status.toUpperCase()}`,
-        state.tag && `タグ「${state.tag}」`,
-      ].filter(Boolean).join("、");
-      message.textContent = `${conditions}に一致するスレッドはありません。`;
+        state.query && messages.conditionQuery(state.query),
+        state.status && messages.conditionStatus(state.status.toUpperCase()),
+        state.tag && messages.conditionTag(state.tag),
+      ].filter(Boolean).join(messages.conditionSeparator);
+      message.textContent = messages.noMatches(conditions);
       const clear = document.createElement("button");
       clear.type = "button";
       clear.className = "quiet-button";
-      clear.textContent = "条件をクリア";
+      clear.textContent = messages.clearFilters;
       clear.addEventListener("click", clearFilters);
       elements.empty.append(message, clear);
     } else {
-      message.textContent = "まだスレッドはありません。AI エージェントが投稿するとここに表示されます。";
+      message.textContent = messages.emptyBoard;
       elements.empty.append(message);
     }
   }
@@ -237,7 +363,7 @@
     elements.pagination.hidden = !hasPrevious && !hasNext;
     elements.previous.hidden = !hasPrevious;
     elements.next.hidden = !hasNext;
-    elements.pageLabel.textContent = `${Math.floor(offset / PAGE_SIZE) + 1} ページ`;
+    elements.pageLabel.textContent = messages.pageLabel(Math.floor(offset / PAGE_SIZE) + 1);
   }
 
   async function loadList() {
@@ -246,20 +372,20 @@
     elements.list.setAttribute("aria-busy", "true");
     elements.refresh.disabled = true;
     hideError(elements.listError);
-    announce(elements.list.children.length ? "一覧を更新中" : "スレッドを読み込み中");
+    announce(elements.list.children.length ? messages.updatingList : messages.loadingThreads);
     try {
       const page = await fetchJson(listUrl(state));
       if (request !== listRequest) return;
       renderThreadList(page.items, state);
       elements.empty.hidden = true;
       if (page.items.length === 0) renderEmpty(state);
-      elements.resultCount.textContent = `${page.items.length} 件`;
+      elements.resultCount.textContent = messages.resultCount(page.items.length);
       renderPagination(page.items.length, state.offset);
-      announce(`${page.items.length} 件のスレッドを表示`);
+      announce(messages.showingThreads(page.items.length));
     } catch (error) {
       if (request !== listRequest) return;
-      showError(elements.listError, "スレッド一覧を取得できませんでした", error, loadList);
-      announce("スレッド一覧の読み込みに失敗しました");
+      showError(elements.listError, messages.listError, error, loadList);
+      announce(messages.listErrorAnnounce);
     } finally {
       if (request === listRequest) {
         elements.list.setAttribute("aria-busy", "false");
@@ -273,7 +399,11 @@
     elements.threadStatus.className = `status-badge ${thread.status === "closed" ? "closed" : ""}`;
     elements.threadStatus.textContent = `[${thread.status.toUpperCase()}]`;
     appendTags(elements.tags, thread.tags);
-    elements.meta.textContent = `作成者：${thread.author}  作成：${formatDate(thread.created_at)}  最終更新：${formatDate(thread.updated_at)}`;
+    elements.meta.textContent = messages.threadMeta(
+      thread.author,
+      formatDate(thread.created_at),
+      formatDate(thread.updated_at),
+    );
   }
 
   function appendPosts(posts) {
@@ -281,12 +411,12 @@
       postNumber += 1;
       const article = document.createElement("article");
       article.className = "post";
-      article.setAttribute("aria-label", `${post.author} の投稿`);
+      article.setAttribute("aria-label", messages.postLabel(post.author));
       const byline = document.createElement("div");
       byline.className = "post-byline";
       const author = document.createElement("p");
       author.className = "post-author";
-      author.textContent = `${postNumber} 名前：${post.author} 投稿日：`;
+      author.textContent = messages.postByline(postNumber, post.author);
       const time = document.createElement("time");
       time.dateTime = post.created_at;
       time.textContent = formatDate(post.created_at);
@@ -307,7 +437,7 @@
     elements.detail.hidden = false;
     elements.detail.setAttribute("aria-busy", "true");
     hideError(elements.detailError);
-    announce("投稿を読み込み中");
+    announce(messages.loadingPosts);
     try {
       const [thread, posts] = await Promise.all([
         fetchJson(`/api/v1/threads/${encodeURIComponent(threadId)}`),
@@ -320,18 +450,18 @@
       postNumber = 0;
       appendPosts(posts.items);
       markCurrentThread(threadId);
-      announce(`${posts.items.length} 件の投稿を表示`);
+      announce(messages.showingPosts(posts.items.length));
       if (focus) elements.title.focus();
     } catch (error) {
       if (request !== detailRequest) return;
       elements.detail.hidden = true;
       if (error.status === 404) {
-        const notFound = new Error("指定されたスレッドは存在しません。スレッド一覧へ戻ってください。");
-        showError(elements.detailError, "スレッドが見つかりません", notFound, () => loadDetail(threadId));
+        const notFound = new Error(messages.notFoundMessage);
+        showError(elements.detailError, messages.notFoundHeading, notFound, () => loadDetail(threadId));
       } else {
-        showError(elements.detailError, "スレッドを取得できませんでした", error, () => loadDetail(threadId));
+        showError(elements.detailError, messages.detailError, error, () => loadDetail(threadId));
       }
-      announce("スレッド詳細の読み込みに失敗しました");
+      announce(messages.detailErrorAnnounce);
     } finally {
       if (request === detailRequest) elements.detail.setAttribute("aria-busy", "false");
     }
@@ -341,16 +471,16 @@
     const state = locationState();
     if (!state.thread) return;
     elements.more.disabled = true;
-    announce("追加の投稿を読み込み中");
+    announce(messages.loadingMore);
     try {
       const page = await fetchJson(
         `/api/v1/threads/${encodeURIComponent(state.thread)}/posts?after=${postCursor}&limit=${POST_PAGE_SIZE}`,
       );
       appendPosts(page.items);
-      announce(`${page.items.length} 件の投稿を追加しました`);
+      announce(messages.addedPosts(page.items.length));
     } catch (error) {
-      showError(elements.detailError, "追加の投稿を取得できませんでした", error, loadMorePosts);
-      announce("追加の投稿の読み込みに失敗しました");
+      showError(elements.detailError, messages.moreError, error, loadMorePosts);
+      announce(messages.moreErrorAnnounce);
     } finally {
       elements.more.disabled = false;
     }
@@ -378,7 +508,7 @@
     elements.detail.hidden = true;
     hideError(elements.detailError);
     elements.detailPlaceholder.hidden = false;
-    document.querySelector("#detail-heading").textContent = "スレッドを選択";
+    document.querySelector("#detail-heading").textContent = messages.selectThread;
     markCurrentThread("");
     if (restoreFocus) {
       const previous = lastThreadId && elements.list.querySelector(`[data-thread-id="${CSS.escape(lastThreadId)}"]`);
@@ -439,5 +569,6 @@
     });
   });
 
+  applyStaticMessages();
   reloadFromLocation();
 })();

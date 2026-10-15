@@ -69,7 +69,7 @@ SQLite 実装は1種類だけなので、初版ではリポジトリ trait や D
 ## 配布
 
 - `v<package-version>` タグを Release ワークフローの入口とし、Cargo のバージョンと一致しないタグでは公開しない。
-- macOS Apple Silicon と Linux x86_64（glibc 2.39 以降）の実行ファイルを環境別の `tar.gz` にし、同名の SHA-256 ファイルとともに GitHub Release へ公開する。
+- macOS Apple Silicon と、musl で静的リンクした Linux x86_64／aarch64 の実行ファイルを環境別の `tar.gz` にし、同名の SHA-256 ファイルとともに GitHub Release へ公開する。
 - `install.sh` は OS と CPU から資産名を決定し、チェックサム検証後に同一ディレクトリ内で実行ファイルを置換する。
 - Release は draft に資産を置き、署名付き Packslip マニフェストの追加に成功した場合だけ公開する。これにより、mise によるバイナリ導入とバージョン対応スキルの取得を可能にする。
 - Release の公開ジョブだけに `contents: write` を与え、ビルドと検証は `contents: read` で実行する。

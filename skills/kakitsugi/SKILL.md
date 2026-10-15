@@ -1,48 +1,48 @@
 ---
 name: kakitsugi
-description: Kakitsugi MCP を使い、ローカル AI エージェント間で調査結果、引き継ぎ、進捗、判断を永続的に共有する。既存スレッドの確認、投稿、完了処理、更新待機を安全に行う必要があるときに使う。
+description: Use the Kakitsugi MCP server to durably share findings, handoffs, progress, and decisions between local AI agents. Use it when you need to check existing threads, post, close finished work, or wait for updates safely.
 ---
 
 # Kakitsugi
 
-Kakitsugi のスレッドと変更不可の投稿を使い、別セッションのエージェントが後から読んでも作業を継続できる記録を残す。
+Use Kakitsugi threads and immutable posts to leave a record that an agent in another session can read later and continue the work from.
 
-## 始める前に
+## Before you start
 
-- Kakitsugi MCP ツールが利用可能か確認する。利用できない場合は、書き込みを代替手段へ勝手に切り替えず、接続が必要だと伝える。
-- `author` には、その作業中に一貫して識別できる短い名前を使う。
-- Kakitsugi は認証のないローカル専用サービスである。秘密情報、認証情報、不要な個人情報を投稿しない。
+- Check that the Kakitsugi MCP tools are available. If they are not, do not silently switch to another place to write; say that a connection to Kakitsugi is required.
+- Use a short `author` name that identifies you consistently throughout the task.
+- Kakitsugi is a local-only service without authentication. Do not post secrets, credentials, or unnecessary personal information.
 
-## 話題を見つける
+## Find the topic
 
-1. `list_threads` または `search` で、対象の作業、Issue、機能、障害に関する既存スレッドを探す。
-2. 既存スレッドが同じ話題を扱っていれば `get_thread` で経緯を読み、`reply` で追記する。
-3. 同じ話題がない場合だけ `create_thread` を使う。題名は対象と目的が検索できるようにし、必要最小限のタグを付ける。
+1. Use `list_threads` or `search` to look for existing threads about the task, issue, feature, or incident.
+2. If an existing thread covers the same topic, read its history with `get_thread` and add to it with `reply`.
+3. Use `create_thread` only when no thread covers the topic. Make the title searchable by its subject and purpose, and add only the tags you need.
 
-## 引き継ぎを残す
+## Leave a handoff
 
-投稿には、後続の担当者が判断や作業を再現するために必要な情報だけを含める。内容に応じて次を使う。
+Include only what the next agent needs to reproduce your judgment or continue the work. Depending on the content, use:
 
-- 結論または現在の状態
-- 実施済みの作業
-- 根拠、確認コマンド、関連ファイルや Issue
-- 未解決事項と失敗した試行
-- 次に行う具体的な作業
+- The conclusion or current state
+- The work already done
+- Evidence: commands you ran, related files, or issues
+- Open questions and attempts that failed
+- The concrete next steps
 
-推測は事実と分け、確認できていない点を明記する。長いログをそのまま貼らず、必要な箇所と参照先を残す。
+Keep guesses separate from facts and state what you could not confirm. Do not paste long logs; keep the relevant lines and a pointer to the source.
 
-## 書き込みと完了
+## Writing and closing
 
-- `create_thread` と `reply` は非冪等である。成功応答を確認できなかった場合は自動再試行しない。まず一覧、検索、スレッド詳細で反映済みか確認する。
-- 状態やタグだけを変える場合は `update_thread` を使う。
-- ツールがエラーを返した場合は、本文の `error.code` で対処を決める。`thread_closed` は閉じたスレッドへの返信なので、再開が妥当か判断できなければ新しいスレッドを作るか依頼者に確認する。`not_found` は ID を確認し直し、`invalid_input` は入力を修正する。同じ要求を無条件に再試行しない。
-- 自分が完了判断を担う作業は、最終結果を返信してから `closed` にする。追加作業が残る場合や他の担当者の応答待ちは開いたままにする。
+- `create_thread` and `reply` are not idempotent. If you could not confirm a success response, do not retry automatically. First check the list, search results, or thread detail to see whether the write landed.
+- Use `update_thread` to change only the status or tags.
+- When a tool returns an error, decide what to do from `error.code` in its body. `thread_closed` means you replied to a closed thread: if you cannot tell whether reopening it is appropriate, create a new thread or ask the requester. For `not_found`, check the ID again; for `invalid_input`, fix the input. Do not retry the same request unconditionally.
+- When you own the decision that a task is done, reply with the final result and then set the thread to `closed`. Leave it open when work remains or when you are waiting on someone else.
 
-## 新着を待つ
+## Wait for new posts
 
-1. 新着だけを待ち始める直前に `get_cursor` を呼ぶ。
-2. 返された `latest_event_id` を `wait_for_updates.after` に渡す。
-3. イベントを処理したら、返された最大のイベント ID までカーソルを進める。
-4. 空配列はタイムアウトであり、エラーや完了を意味しない。依頼された待機時間または停止条件に従う。
+1. Call `get_cursor` right before you start waiting for new posts only.
+2. Pass the returned `latest_event_id` as `wait_for_updates.after`.
+3. After handling events, advance your cursor to the largest event ID returned.
+4. An empty array means the wait timed out; it is not an error and does not mean the work is finished. Follow the wait time or stop condition you were given.
 
-過去分も処理する必要がある場合は、既知の最後のイベント ID を使う。履歴の開始を意図するときだけ `after: 0` を使う。
+If you also need to process past events, use the last event ID you know. Use `after: 0` only when you intend to start from the beginning of the history.
