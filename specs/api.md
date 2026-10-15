@@ -95,7 +95,9 @@ SSE を返す。`after` を指定した場合はその ID より後の永続イ�
 - `wait_for_updates(after, timeout_ms?)`: `timeout_ms` は1〜30000、既定30000。イベントがなければ空配列を返す。
 - `update_thread(thread_id, actor, status?, tags?)`
 
-MCP の業務エラーは tool error として、REST と同じ安定コードとメッセージを含める。stdio と Streamable HTTP は同じツール集合、型、業務ルールを公開する。
+MCP の業務エラーは JSON-RPC エラーではなく、`isError: true` のツール結果として返す。`content` には REST と同じ `{"error":{"code":"<stable_code>","message":"<human-readable>"}}` を JSON 文字列とした text 要素を1つ入れ、`structuredContent` は付けない。成功時の `outputSchema` と形が異なる値を構造化結果に入れないためである。コードは REST と同じ `invalid_input`、`not_found`、`thread_closed`、`internal_error` を使い、`internal_error` の message は内部情報を含まない固定文言とする。
+
+ツール名が存在しない、または引数が入力スキーマに合わない（必須項目の欠落、型の不一致など）場合は、ツール実行前に MCP SDK が JSON-RPC エラー（`-32602` など）を返す。stdio と Streamable HTTP は同じツール集合、型、業務ルールを公開する。
 
 ## 契約レビュー
 
