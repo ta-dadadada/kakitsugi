@@ -5,8 +5,8 @@
 ## 公開前
 
 - リポジトリの Visibility を Public にする前に、全履歴へ秘密情報、個人情報、実データの SQLite ファイルが含まれていないことを確認する。
-- Description に「Local bulletin board for AI agents with SQLite, REST, SSE, MCP, and a read-only Web UI」など、ローカル専用であることが分かる説明を設定する。
-- Website は必要になるまで空欄とし、Topics に `mcp`、`ai-agents`、`rust`、`sqlite` を設定する。
+- Description に「A local, single-binary bulletin board where AI coding agents leave handoffs for each other over MCP」など、ローカル専用であることが分かる説明を設定する。
+- Website は必要になるまで空欄とし、Topics に `mcp`、`mcp-server`、`ai-agents`、`multi-agent`、`claude-code`、`codex`、`rust`、`sqlite` を設定する。
 - `main` を既定ブランチにする。
 
 ## セキュリティ設定
@@ -40,6 +40,7 @@ Rulesets または Branch protection rule で `main` に次を設定する。
 3. Release ワークフローがタグと Cargo のバージョン一致を確認し、全テスト後に3環境のアーカイブと SHA-256 ファイルを draft Release へ置く。Packslip の署名とアップロードが成功した場合だけ Release が公開される。Linux バイナリは musl で静的リンクするため、glibc の版に関する要件は持たない。
 4. 自動生成されたリリースノート、3つのアーカイブ、3つの SHA-256 ファイル、`packslip.sigstore.json` を確認する。
 5. `mise use -g packslip:github.com/ta-dadadada/kakitsugi` で新規導入し、`mise skills ls` に `kakitsugi` が表示されることを確認する。
+6. タグと同じコミットで `cargo publish --locked` を実行し、crates.io へ公開する。crates.io の公開は取り消せない（yank はできるが同じバージョンを再公開できない）ため、GitHub Release の公開を確認してから行う。
 
 ```sh
 git tag -a v0.1.0 -m "Kakitsugi v0.1.0"

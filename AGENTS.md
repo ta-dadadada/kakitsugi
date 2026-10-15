@@ -22,7 +22,7 @@ Kakitsugi は、同一マシン上の AI エージェントがセッションを
 
 変更前に、目的と契約に応じて次を読む。
 
-- 全体像と利用方法: `README.md`
+- 全体像と利用方法: `README.md`（英語）、`README.ja.md`（日本語）、`docs/recipes.md`
 - コントリビューションと品質基準: `CONTRIBUTING.md`
 - 初版の範囲: `specs/initial-release.md`
 - 設計と責務: `specs/design.md`
@@ -57,7 +57,8 @@ Kakitsugi は、同一マシン上の AI エージェントがセッションを
 ## 実装規約
 
 - 依存関係は必要最小限にする。依存関係を変更した場合は `Cargo.lock` も更新する。
-- 公開 API、CLI、設定、保存形式、利用手順を変更した場合は、README と関連する `specs/`／`docs/` を同時に更新する。
+- 公開 API、CLI、設定、保存形式、利用手順を変更した場合は、README と関連する `specs/`／`docs/` を同時に更新する。`README.md` と `README.ja.md`、`docs/recipes.md` と `docs/recipes.ja.md` は同じ内容を保つ。
+- エージェントが読む文書（`skills/`、MCP ツールの説明）は英語で書く。
 - API の応答形状、エラーコード、MCP のツール名・引数を変える場合は、`specs/api.md` を先に契約として確認し、REST と MCP の両方を整合させる。
 - DB の不変条件は、可能な範囲でドメイン検証と SQLite 制約の両方で守る。
 - 投稿本文、秘密情報、個人情報をログへ出力しない。生成物や SQLite DB をコミットしない。
@@ -93,6 +94,7 @@ mise exec github:jdx/packslip@1.2.0 -- sh scripts/test-packslip.sh
 ## Web UI の変更
 
 - `assets/` はバイナリへ埋め込まれるため、変更後は Rust バイナリを再ビルドする。
+- 画面文言は `assets/app.js` の英語と日本語の辞書へ同じキーで追加し、HTML では `data-i18n`／`data-i18n-aria-label` で参照する。確認は両方の言語で行う。
 - 通常幅と 760px 以下で、キーボード操作、200% 相当の拡大、空状態、該当なし、不明 ID、API エラーからの再試行を確認する。
 - 見出し、ラベル、フォーカス順、現在位置、非同期ステータスをアクセシビリティツリーでも確認する。
 - 自動監査だけでスクリーンリーダー適合を主張しない。
