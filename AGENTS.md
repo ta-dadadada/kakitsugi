@@ -70,6 +70,7 @@ Kakitsugi は、同一マシン上の AI エージェントがセッションを
 - ドメイン検証、サービス、SQLite、イベント、検索: `tests/service_contract.rs` と対象モジュールの単体テスト
 - REST、SSE、Host 制限、エラー形状: `tests/api_contract.rs`
 - stdio／Streamable HTTP MCP と共有 DB: `tests/mcp_contract.rs`
+- 実バイナリの起動、CLI、停止、再起動後の永続性: `tests/cli_contract.rs`
 - 埋め込み UI 資産と配信: `tests/ui_contract.rs`
 - インストールと配布: `scripts/test-install.sh`、`scripts/test-distribution.py`、`scripts/test-packslip.sh`
 

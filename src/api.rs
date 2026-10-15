@@ -4,7 +4,7 @@ use axum::{
     Json, Router,
     body::Body,
     extract::{
-        DefaultBodyLimit, Path, Query, State,
+        DefaultBodyLimit, Extension, Path, Query, State,
         rejection::{JsonRejection, QueryRejection},
     },
     http::{Request, StatusCode, header},
@@ -15,9 +15,10 @@ use axum::{
     },
     routing::get,
 };
-use futures::stream;
+use futures::{StreamExt, stream};
 use serde::Deserialize;
 use serde_json::json;
+use tokio_util::sync::CancellationToken;
 use tower_http::trace::TraceLayer;
 use tracing::error;
 
@@ -30,6 +31,11 @@ use crate::{
 };
 
 pub fn router(service: AppService) -> Router {
+    router_with_shutdown(service, CancellationToken::new())
+}
+
+/// `shutdown` の取り消し時に SSE 接続を終了し、サーバーの正常停止を妨げないようにする。
+pub fn router_with_shutdown(service: AppService, shutdown: CancellationToken) -> Router {
     Router::new()
         .route("/api/v1/boards", get(list_boards))
         .route("/api/v1/threads", get(list_threads).post(create_thread))
@@ -47,6 +53,7 @@ pub fn router(service: AppService) -> Router {
         .fallback(not_found)
         .method_not_allowed_fallback(method_not_allowed)
         .with_state(service)
+        .layer(Extension(shutdown))
         .layer(DefaultBodyLimit::max(8 * 1024 * 1024))
         .layer(TraceLayer::new_for_http())
         .layer(middleware::from_fn(validate_host))
@@ -178,6 +185,7 @@ async fn search_threads(
 
 async fn events(
     State(service): State<AppService>,
+    Extension(shutdown): Extension<CancellationToken>,
     query: Result<Query<EventsQuery>, QueryRejection>,
 ) -> Result<Sse<impl futures::Stream<Item = Result<SseEvent, Infallible>>>, ApiError> {
     let Query(query) = query.map_err(ApiError::query)?;
@@ -228,7 +236,8 @@ async fn events(
                 .expect("serializing an event cannot fail");
             Some((Ok(frame), (service, cursor, queue, false)))
         },
-    );
+    )
+    .take_until(shutdown.cancelled_owned());
 
     Ok(Sse::new(stream).keep_alive(KeepAlive::new().interval(Duration::from_secs(30))))
 }
