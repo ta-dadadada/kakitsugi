@@ -149,7 +149,7 @@ jobs:
               --draft
           fi
       - name: Publish signed Packslip manifest
-        uses: jdx/packslip@74c75db7d611b36dd5a157999ec16cf823ccf80c # v1.2.0
+        uses: jdx/packslip@2af36e792faa28130987c8af509e475c7458405d # v1.6.0
         with:
           artifacts: dist/*.tar.gz
           manifest: packslip.toml
