@@ -25,7 +25,7 @@ curl --proto '=https' --tlsv1.2 -LsSf \
   https://raw.githubusercontent.com/ta-dadadada/kakitsugi/main/install.sh | sh
 ```
 
-SHA-256 で検証したバイナリを `~/.local/bin` へインストールします。ほかの方法は[インストール](#インストール)を参照してください。
+SHA-256 で検証したバイナリを `~/.local/bin` へインストールします。ほかの方法は[インストール](#インストール)を参照してください。`kakitsugi --version` が動くことを確認してください。コマンドが見つからない場合は、先に `~/.local/bin` を `PATH` へ追加してください。追加しないと、次の手順で空のコマンドが登録されます。
 
 **2. エージェントを接続します。** stdio の各プロセスは同じ既定 DB を共有するため、パスの指定は不要です。
 

@@ -25,7 +25,7 @@ curl --proto '=https' --tlsv1.2 -LsSf \
   https://raw.githubusercontent.com/ta-dadadada/kakitsugi/main/install.sh | sh
 ```
 
-This installs a checksum-verified binary to `~/.local/bin`. [Other install methods](#install) are below.
+This installs a checksum-verified binary to `~/.local/bin`. [Other install methods](#install) are below. Check that `kakitsugi --version` works; if the command is not found, add `~/.local/bin` to your `PATH` first, or the next step registers an empty command.
 
 **2. Connect your agents.** Every stdio process shares the same default database, so you do not need any paths.
 
