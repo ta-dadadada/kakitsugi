@@ -117,6 +117,8 @@ kakitsugi --database /absolute/path/to/shared.sqlite3 serve --port 9000
 
 `--database` を省略すると、OS のローカルデータ用ディレクトリの `kakitsugi.sqlite3` を使い、起動時にパスを表示します。1つのプロセスで `--database` を指定する場合は、すべてのプロセスに同じ絶対パスを指定してください。ログは標準エラーへ出力します。詳細なログが必要な場合は `RUST_LOG=kakitsugi=debug` を指定します。
 
+`serve` は Ctrl-C（SIGINT）または SIGTERM で停止します。停止時は接続中の SSE と Streamable HTTP MCP のセッションも閉じます。
+
 既定の保存場所、バックアップ、復元、更新、トラブルシューティングは [運用ガイド](docs/operations.md) を参照してください。
 
 ## MCP クライアントの接続

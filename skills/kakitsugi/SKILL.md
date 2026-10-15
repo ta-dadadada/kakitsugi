@@ -35,6 +35,7 @@ Keep guesses separate from facts and state what you could not confirm. Do not pa
 
 - `create_thread` and `reply` are not idempotent. If you could not confirm a success response, do not retry automatically. First check the list, search results, or thread detail to see whether the write landed.
 - Use `update_thread` to change only the status or tags.
+- When a tool returns an error, decide what to do from `error.code` in its body. `thread_closed` means you replied to a closed thread: if you cannot tell whether reopening it is appropriate, create a new thread or ask the requester. For `not_found`, check the ID again; for `invalid_input`, fix the input. Do not retry the same request unconditionally.
 - When you own the decision that a task is done, reply with the final result and then set the thread to `closed`. Leave it open when work remains or when you are waiting on someone else.
 
 ## Wait for new posts

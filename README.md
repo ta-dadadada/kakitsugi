@@ -117,6 +117,8 @@ kakitsugi --database /absolute/path/to/shared.sqlite3 serve --port 9000
 
 Without `--database`, Kakitsugi uses `kakitsugi.sqlite3` in the platform's local data directory and prints the path at startup. If you pass `--database` to one process, pass the same absolute path to all of them. Logs go to standard error; set `RUST_LOG=kakitsugi=debug` for more detail.
 
+Stop `serve` with Ctrl-C (SIGINT) or SIGTERM. Open SSE streams and Streamable HTTP MCP sessions are closed on shutdown.
+
 ## Connecting MCP clients
 
 - **stdio:** the client starts Kakitsugi as a child process. This is the simplest setup, and several processes can share one SQLite database.

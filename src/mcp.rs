@@ -1,9 +1,9 @@
 use std::time::Duration;
 
 use rmcp::{
-    ErrorData, Json, ServerHandler, ServiceExt,
+    Json, ServerHandler, ServiceExt,
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
-    model::{ServerCapabilities, ServerInfo},
+    model::{CallToolResult, ContentBlock, ServerCapabilities, ServerInfo},
     schemars, tool, tool_handler, tool_router,
     transport::{
         StreamableHttpService,
@@ -12,14 +12,13 @@ use rmcp::{
 };
 use schemars::JsonSchema;
 use serde::Deserialize;
-use serde_json::json;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
     domain::{
-        BoardsResponse, CreateThreadInput, CursorResponse, EventsResponse, ListThreadsInput, Page,
-        ReplyInput, SearchInput, ThreadDetail, ThreadRecord, ThreadStatus, UpdateThreadInput,
-        default_limit,
+        BoardsResponse, CreateThreadInput, CursorResponse, ErrorBody, ErrorEnvelope,
+        EventsResponse, ListThreadsInput, Page, ReplyInput, SearchInput, ThreadDetail,
+        ThreadRecord, ThreadStatus, UpdateThreadInput, default_limit,
     },
     service::{AppError, AppService},
 };
@@ -104,7 +103,7 @@ fn default_timeout_ms() -> u64 {
 #[tool_router]
 impl KakitsugiMcp {
     #[tool(description = "List the local bulletin boards available to agents")]
-    async fn list_boards(&self) -> Result<Json<BoardsResponse>, ErrorData> {
+    async fn list_boards(&self) -> Result<Json<BoardsResponse>, CallToolResult> {
         self.service
             .list_boards()
             .await
@@ -116,7 +115,7 @@ impl KakitsugiMcp {
     async fn list_threads(
         &self,
         Parameters(args): Parameters<ListThreadsArgs>,
-    ) -> Result<Json<Page<ThreadRecord>>, ErrorData> {
+    ) -> Result<Json<Page<ThreadRecord>>, CallToolResult> {
         self.service
             .list_threads(ListThreadsInput {
                 status: args.status,
@@ -133,7 +132,7 @@ impl KakitsugiMcp {
     async fn get_thread(
         &self,
         Parameters(args): Parameters<GetThreadArgs>,
-    ) -> Result<Json<ThreadDetail>, ErrorData> {
+    ) -> Result<Json<ThreadDetail>, CallToolResult> {
         self.service
             .get_thread(&args.thread_id, args.after, args.limit)
             .await
@@ -145,7 +144,7 @@ impl KakitsugiMcp {
     async fn create_thread(
         &self,
         Parameters(input): Parameters<CreateThreadInput>,
-    ) -> Result<Json<crate::domain::CreateThreadResponse>, ErrorData> {
+    ) -> Result<Json<crate::domain::CreateThreadResponse>, CallToolResult> {
         self.service
             .create_thread(input)
             .await
@@ -157,7 +156,7 @@ impl KakitsugiMcp {
     async fn reply(
         &self,
         Parameters(args): Parameters<ReplyArgs>,
-    ) -> Result<Json<crate::domain::ReplyResponse>, ErrorData> {
+    ) -> Result<Json<crate::domain::ReplyResponse>, CallToolResult> {
         self.service
             .reply(
                 &args.thread_id,
@@ -175,7 +174,7 @@ impl KakitsugiMcp {
     async fn search(
         &self,
         Parameters(args): Parameters<SearchArgs>,
-    ) -> Result<Json<Page<ThreadRecord>>, ErrorData> {
+    ) -> Result<Json<Page<ThreadRecord>>, CallToolResult> {
         self.service
             .search(SearchInput {
                 query: args.query,
@@ -190,7 +189,7 @@ impl KakitsugiMcp {
     }
 
     #[tool(description = "Get the latest durable event id before waiting for new updates")]
-    async fn get_cursor(&self) -> Result<Json<CursorResponse>, ErrorData> {
+    async fn get_cursor(&self) -> Result<Json<CursorResponse>, CallToolResult> {
         self.service
             .latest_event_id()
             .await
@@ -202,7 +201,7 @@ impl KakitsugiMcp {
     async fn wait_for_updates(
         &self,
         Parameters(args): Parameters<WaitForUpdatesArgs>,
-    ) -> Result<Json<EventsResponse>, ErrorData> {
+    ) -> Result<Json<EventsResponse>, CallToolResult> {
         self.service
             .wait_for_updates(args.after, Duration::from_millis(args.timeout_ms))
             .await
@@ -214,7 +213,7 @@ impl KakitsugiMcp {
     async fn update_thread(
         &self,
         Parameters(args): Parameters<UpdateThreadArgs>,
-    ) -> Result<Json<crate::domain::UpdateThreadResponse>, ErrorData> {
+    ) -> Result<Json<crate::domain::UpdateThreadResponse>, CallToolResult> {
         self.service
             .update_thread(
                 &args.thread_id,
@@ -259,18 +258,26 @@ pub async fn serve_stdio(service: AppService) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn mcp_error(error: AppError) -> ErrorData {
+/// 業務エラーを `isError: true` のツール結果へ変換する。
+///
+/// 本文は REST と同じ `{"error":{"code","message"}}` の JSON テキストとする。
+/// 成功時の outputSchema と形が異なるため、`structuredContent` は付けない。
+fn mcp_error(error: AppError) -> CallToolResult {
     let (code, message) = match error {
         AppError::InvalidInput(message) => ("invalid_input", message),
         AppError::NotFound => ("not_found", "resource not found".into()),
         AppError::ThreadClosed => ("thread_closed", "thread is closed".into()),
         AppError::Internal(message) => {
             tracing::error!(error = %message, "MCP tool failed");
-            return ErrorData::internal_error(
-                "internal server error",
-                Some(json!({"code": "internal_error"})),
-            );
+            ("internal_error", "internal server error".into())
         }
     };
-    ErrorData::invalid_params(message, Some(json!({"code": code})))
+    let envelope = ErrorEnvelope {
+        error: ErrorBody {
+            code: code.to_owned(),
+            message,
+        },
+    };
+    let text = serde_json::to_string(&envelope).expect("serializing an error cannot fail");
+    CallToolResult::error(vec![ContentBlock::text(text)])
 }
