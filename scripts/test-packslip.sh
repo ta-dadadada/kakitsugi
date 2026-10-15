@@ -26,7 +26,9 @@ chmod 0755 "$temp_root/payload/kakitsugi"
 tar -C "$temp_root/payload" -czf \
   "$temp_root/dist/kakitsugi-aarch64-apple-darwin.tar.gz" kakitsugi
 tar -C "$temp_root/payload" -czf \
-  "$temp_root/dist/kakitsugi-x86_64-unknown-linux-gnu.tar.gz" kakitsugi
+  "$temp_root/dist/kakitsugi-x86_64-unknown-linux-musl.tar.gz" kakitsugi
+tar -C "$temp_root/payload" -czf \
+  "$temp_root/dist/kakitsugi-aarch64-unknown-linux-musl.tar.gz" kakitsugi
 
 (
   cd "$temp_root"
@@ -52,12 +54,30 @@ tar -C "$temp_root/payload" -czf \
     --no-log \
     --no-libs \
     --out output
-  "$packslip_bin" show output/packslip.sigstore.json >/dev/null
+  "$packslip_bin" show --raw output/packslip.sigstore.json > statement.json
+  python3 - statement.json <<'PY'
+import json
+import sys
+
+artifacts = json.load(open(sys.argv[1]))["predicate"]["artifacts"]
+platforms = {
+    a["name"]: (a.get("os"), a.get("arch"), a.get("libc"), a.get("requires"))
+    for a in artifacts
+}
+expected = {
+    "kakitsugi-aarch64-apple-darwin.tar.gz": ("darwin", "aarch64", None, None),
+    "kakitsugi-x86_64-unknown-linux-musl.tar.gz": ("linux", "x86_64", "musl", None),
+    "kakitsugi-aarch64-unknown-linux-musl.tar.gz": ("linux", "aarch64", "musl", None),
+}
+if platforms != expected:
+    raise SystemExit(f"unexpected packslip platforms: {platforms}")
+PY
   "$packslip_bin" verify output/packslip.sigstore.json \
     --pubkey release.pub \
     --allow-unlogged \
     --artifact dist/kakitsugi-aarch64-apple-darwin.tar.gz \
-    --artifact dist/kakitsugi-x86_64-unknown-linux-gnu.tar.gz
+    --artifact dist/kakitsugi-x86_64-unknown-linux-musl.tar.gz \
+    --artifact dist/kakitsugi-aarch64-unknown-linux-musl.tar.gz
 )
 
 printf '%s\n' "packslip contract test passed"

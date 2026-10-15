@@ -17,23 +17,20 @@ manifest = tomllib.loads((ROOT / "packslip.toml").read_text())
 require(manifest.get("bin") == ["kakitsugi"], "packslip bin must be kakitsugi")
 
 artifacts = {item.get("path"): item for item in manifest.get("artifact", [])}
+ARTIFACTS = {
+    "dist/kakitsugi-aarch64-apple-darwin.tar.gz",
+    "dist/kakitsugi-x86_64-unknown-linux-musl.tar.gz",
+    "dist/kakitsugi-aarch64-unknown-linux-musl.tar.gz",
+}
 require(
-    set(artifacts)
-    == {
-        "dist/kakitsugi-aarch64-apple-darwin.tar.gz",
-        "dist/kakitsugi-x86_64-unknown-linux-gnu.tar.gz",
-    },
-    "packslip artifacts must match the two release archives",
+    set(artifacts) == ARTIFACTS,
+    "packslip artifacts must match the three release archives",
 )
-require(
-    artifacts["dist/kakitsugi-aarch64-apple-darwin.tar.gz"].get("requires") is None,
-    "macOS artifact must not declare Linux requirements",
-)
-require(
-    artifacts["dist/kakitsugi-x86_64-unknown-linux-gnu.tar.gz"].get("requires")
-    == {"glibc_min": "2.39"},
-    "Linux artifact must require glibc 2.39",
-)
+for path, artifact in artifacts.items():
+    require(
+        set(artifact) == {"path"},
+        f"{path} must infer its platform from the file name without requirements",
+    )
 
 resources = manifest.get("resource", [])
 require(

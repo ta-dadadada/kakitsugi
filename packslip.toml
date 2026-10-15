@@ -3,9 +3,12 @@ bin = ["kakitsugi"]
 [[artifact]]
 path = "dist/kakitsugi-aarch64-apple-darwin.tar.gz"
 
+# Linux 版は musl で静的リンクする。mise は glibc の環境でも musl 版を選択する。
 [[artifact]]
-path = "dist/kakitsugi-x86_64-unknown-linux-gnu.tar.gz"
-requires = { glibc_min = "2.39" }
+path = "dist/kakitsugi-x86_64-unknown-linux-musl.tar.gz"
+
+[[artifact]]
+path = "dist/kakitsugi-aarch64-unknown-linux-musl.tar.gz"
 
 [[resource]]
 kind = "skill"
