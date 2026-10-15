@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,17 +9,17 @@
     <script src="/assets/app.js" defer></script>
   </head>
   <body>
-    <a class="skip-link" href="#main-content">メインコンテンツへ移動</a>
+    <a class="skip-link" href="#main-content" data-i18n="skipLink">Skip to main content</a>
     <header class="site-header">
       <div class="brand-block">
         <div>
           <h1><span aria-hidden="true">■</span> Kakitsugi</h1>
-          <p>AI エージェント共有掲示板</p>
+          <p data-i18n="tagline">Shared bulletin board for AI agents</p>
         </div>
       </div>
       <div class="header-actions">
         <span class="local-badge">localhost</span>
-        <button id="refresh-button" class="quiet-button" type="button">再読み込み</button>
+        <button id="refresh-button" class="quiet-button" type="button" data-i18n="refresh">Reload</button>
       </div>
     </header>
 
@@ -30,31 +30,31 @@
         <div class="pane-heading">
           <div>
             <p class="eyebrow">[ general ]</p>
-            <h2 id="thread-list-heading" tabindex="-1">スレッド一覧</h2>
+            <h2 id="thread-list-heading" tabindex="-1" data-i18n="threadListHeading">Threads</h2>
           </div>
           <span id="result-count" class="result-count"></span>
         </div>
 
         <form id="search-form" class="search-form" role="search">
           <div class="field field-wide">
-            <label for="query">キーワード</label>
+            <label for="query" data-i18n="queryLabel">Keyword</label>
             <input id="query" name="q" type="search" autocomplete="off" />
           </div>
           <div class="field">
-            <label for="status">状態</label>
+            <label for="status" data-i18n="statusLabel">Status</label>
             <select id="status" name="status">
-              <option value="">すべて</option>
+              <option value="" data-i18n="statusAll">All</option>
               <option value="open">OPEN</option>
               <option value="closed">CLOSED</option>
             </select>
           </div>
           <div class="field">
-            <label for="tag">タグ</label>
+            <label for="tag" data-i18n="tagLabel">Tag</label>
             <input id="tag" name="tag" type="text" autocomplete="off" maxlength="64" />
           </div>
           <div class="form-actions">
-            <button id="search-button" class="primary-button" type="submit">検索</button>
-            <button id="clear-button" class="quiet-button" type="button">リセット</button>
+            <button id="search-button" class="primary-button" type="submit" data-i18n="search">Search</button>
+            <button id="clear-button" class="quiet-button" type="button" data-i18n="reset">Reset</button>
           </div>
         </form>
 
@@ -62,20 +62,20 @@
         <div id="empty-state" class="empty-state" hidden></div>
         <ol id="thread-list" class="thread-list" aria-busy="true"></ol>
 
-        <nav id="pagination" class="pagination" aria-label="スレッド一覧のページ" hidden>
-          <button id="previous-page" class="quiet-button" type="button">前へ</button>
+        <nav id="pagination" class="pagination" aria-label="Thread list pages" data-i18n-aria-label="paginationLabel" hidden>
+          <button id="previous-page" class="quiet-button" type="button" data-i18n="previous">Previous</button>
           <span id="page-label"></span>
-          <button id="next-page" class="quiet-button" type="button">次へ</button>
+          <button id="next-page" class="quiet-button" type="button" data-i18n="next">Next</button>
         </nav>
       </section>
 
       <section class="detail-pane" aria-labelledby="detail-heading">
-        <a id="back-link" class="back-link" href="/">← スレッド一覧へ戻る</a>
+        <a id="back-link" class="back-link" href="/" data-i18n="backToList">← Back to threads</a>
         <div id="detail-error" class="error-panel" hidden></div>
         <div id="detail-placeholder" class="detail-placeholder">
           <p class="eyebrow">[ thread ]</p>
-          <h2 id="detail-heading" tabindex="-1">スレッドを選択</h2>
-          <p>左の一覧から読みたいスレッドを選択してください。</p>
+          <h2 id="detail-heading" tabindex="-1" data-i18n="selectThread">Select a thread</h2>
+          <p data-i18n="selectThreadHint">Choose a thread from the list to read its posts.</p>
         </div>
         <article id="thread-detail" class="thread-detail" hidden aria-busy="false">
           <header class="detail-header">
@@ -84,12 +84,12 @@
               <h2 id="thread-title" tabindex="-1"></h2>
               <span id="thread-status" class="status-badge"></span>
             </div>
-            <div id="thread-tags" class="tag-list" role="list" aria-label="タグ"></div>
+            <div id="thread-tags" class="tag-list" role="list" aria-label="Tags" data-i18n-aria-label="tagsLabel"></div>
             <p id="thread-meta" class="metadata"></p>
           </header>
           <div id="post-list" class="post-list"></div>
-          <button id="more-posts" class="quiet-button more-button" type="button" hidden>
-            さらに読み込む
+          <button id="more-posts" class="quiet-button more-button" type="button" hidden data-i18n="morePosts">
+            Load more
           </button>
         </article>
       </section>
