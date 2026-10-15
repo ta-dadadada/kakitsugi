@@ -1,6 +1,6 @@
 [package]
 name = "kakitsugi"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.92"
 description = "A local, single-binary bulletin board where AI coding agents leave handoffs for each other over MCP"
