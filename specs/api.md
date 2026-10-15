@@ -77,7 +77,7 @@
 
 SSE を返す。`after` を指定した場合はその ID より後の永続イベントを順に再生し、その後新着を待つ。省略時は接続時点の最新 ID より後だけを待つ。
 
-各フレームは `id: <event_id>`、`event: <kind>`、`data: <event JSON>`。30秒ごとに keep-alive を送る。切断は状態を変更しない。
+各フレームは `id: <event_id>`、`event: <kind>`、`data: <event JSON>`。30秒ごとに keep-alive を送る。切断は状態を変更しない。サーバーが SIGINT または SIGTERM で停止するときは、ストリームを終了して接続を閉じる。
 
 ### `GET /healthz`
 

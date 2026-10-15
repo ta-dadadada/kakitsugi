@@ -67,7 +67,8 @@ async fn serve(service: AppService, port: u16) -> Result<()> {
     let address = SocketAddr::from((Ipv4Addr::LOCALHOST, port));
     let cancellation = CancellationToken::new();
     let mcp_service = mcp::http_service(service.clone(), cancellation.child_token());
-    let app = api::router(service).nest_service("/mcp", mcp_service);
+    let app = api::router_with_shutdown(service, cancellation.child_token())
+        .nest_service("/mcp", mcp_service);
     let listener = tokio::net::TcpListener::bind(address)
         .await
         .with_context(|| format!("failed to bind http://{address}"))?;
@@ -78,12 +79,38 @@ async fn serve(service: AppService, port: u16) -> Result<()> {
         .with_graceful_shutdown({
             let cancellation = cancellation.clone();
             async move {
-                let _ = tokio::signal::ctrl_c().await;
+                shutdown_signal().await;
+                tracing::info!("shutting down");
                 cancellation.cancel();
             }
         })
         .await?;
     Ok(())
+}
+
+/// SIGINT（Ctrl-C）または SIGTERM を受け取るまで待つ。
+async fn shutdown_signal() {
+    let interrupt = async {
+        let _ = tokio::signal::ctrl_c().await;
+    };
+    #[cfg(unix)]
+    let terminate = async {
+        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+            Ok(mut signal) => {
+                signal.recv().await;
+            }
+            Err(error) => {
+                tracing::warn!(%error, "cannot listen for SIGTERM");
+                std::future::pending::<()>().await;
+            }
+        }
+    };
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+    tokio::select! {
+        () = interrupt => {},
+        () = terminate => {},
+    }
 }
 
 fn default_database_path() -> PathBuf {
